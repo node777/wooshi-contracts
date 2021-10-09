@@ -9,8 +9,12 @@ contract WooshiPresale {
         //admin address
     address admin;
     
+    
         //address of ERC721 Token Smart contract
     address payable tokenContract;
+    
+        //admin address
+    uint256 public price = 110000000000000000;
     
         //end date of sale
     uint256 endDate = 0;
@@ -22,7 +26,7 @@ contract WooshiPresale {
     uint256 mintMax = 3;
     
         //current max mint location pointer
-    uint256 saleMax = 3333;
+    uint256 saleMax = 200;
     
         //whitelist
     mapping(address => bool) public whitelist;
@@ -36,10 +40,13 @@ contract WooshiPresale {
     
         //mint token
         
-    function mintAsset(uint256 amount)public{
+    function mintAsset(uint256 amount) payable public{
         
             //verify maxx
         require(amount<=mintMax, "You may not mint this many");
+        
+            //verify maxx
+        require(msg.value>=price*amount, "Please send more ETH");
         
         
             //verify amount
@@ -52,16 +59,17 @@ contract WooshiPresale {
         require(endDate==0||endDate>block.timestamp, "Sale ended");
         
             //req whitelist
-        require((saleWhitelisted==false)||(whitelist[msg.sender]==true));
+        require((saleWhitelisted==false)||(whitelist[msg.sender]==true), "You are not on the whitelist");
             
             //create token ref
         WooshiNFT Contract = WooshiNFT(tokenContract);
-        
-            //mint token
-        Contract.mint(salePointer, msg.sender);
-            
-            //increse pointer
-        salePointer++;
+        for(uint256 i = 0; i<amount; i++){
+                //mint token
+            Contract.mint(salePointer, msg.sender);
+                
+                //increse pointer
+            salePointer++;
+        }
     
     }
     
@@ -94,9 +102,9 @@ contract WooshiPresale {
         tokenContract = contractAddress;
         
     }
-        //set mint max - hello from Djinn
+        //set mint max 
         
-    function setmintMax(uint256 newMintMax) public{
+    function setMintMax(uint256 newMintMax) public{
         
             //verify user is admin
         require(msg.sender==admin, "user is not authorized to set this field");
@@ -106,17 +114,43 @@ contract WooshiPresale {
         
     }
     
+        //edit pointer 
+        
+    function setMintPointer(uint256 mintPointer) public{
+        
+            //verify user is admin
+        require(msg.sender==admin, "user is not authorized to set this field");
+        
+            //change mint max
+        salePointer = mintPointer;
+        
+    }
+    
+        //edit end 
+        
+    function setEnd(uint256 end) public{
+        
+            //verify user is admin
+        require(msg.sender==admin, "user is not authorized to set this field");
+        
+            //change mint max
+        endDate = end;
+        
+    }
+    
         //whitelist
-    function editWhitelist(address payable user, bool whitelisted) external{
+    function editWhitelist(address payable[] memory users, bool whitelisted) external{
         require(msg.sender==admin, "User is not admin");
-        whitelist[user]=whitelisted;
+        //itterate
+        for(uint256 i=0;i<users.length;i++){
+                //whitelist
+            whitelist[users[i]]=whitelisted;
+        }
     }
     function toggleWhitelist(bool whitelisted) external{
         require(msg.sender==admin, "User is not admin");
         saleWhitelisted=whitelisted;
     }
-        
-        //widthdraw
         
     function widthdraw(uint256 amount, address payable reciever) public payable{
         
