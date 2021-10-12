@@ -29,7 +29,7 @@ contract WooshiMint {
     uint256 saleMax = 200;
     
         //sale receiver
-    address payable saleReceiver = "0x301191Eb6Aa6f598188f2a07138c85385D132388";
+    address payable saleReceiver = payable(0x301191Eb6Aa6f598188f2a07138c85385D132388);
     
         //whitelist
     mapping(address => bool) public whitelist;
