@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "WooshiNFT.sol";
 
-contract WooshiPresale {
+contract WooshiMint {
     
         //admin address
     address admin;
@@ -28,8 +28,14 @@ contract WooshiPresale {
         //current max mint location pointer
     uint256 saleMax = 200;
     
+        //sale receiver
+    address payable saleReceiver = "0x301191Eb6Aa6f598188f2a07138c85385D132388";
+    
         //whitelist
     mapping(address => bool) public whitelist;
+    
+        //minted
+    mapping(address => uint8) public mintCount;
     
     bool saleWhitelisted = true;
     
@@ -40,10 +46,8 @@ contract WooshiPresale {
     
         //mint token
         
-    function mintAsset(uint256 amount) payable public{
+    function mintAsset(uint8 amount) payable public{
         
-            //verify maxx
-        require(amount<=mintMax, "You may not mint this many");
         
             //verify maxx
         require(msg.value>=price*amount, "Please send more ETH");
@@ -63,6 +67,15 @@ contract WooshiPresale {
             
             //create token ref
         WooshiNFT Contract = WooshiNFT(tokenContract);
+
+        mintCount[msg.sender]+=amount;
+
+            //verify maxx
+        require(mintCount[msg.sender]<=mintMax, "You may not mint this many");
+
+            //send eth
+        saleReceiver.transfer(msg.value);
+
         for(uint256 i = 0; i<amount; i++){
                 //mint token
             Contract.mint(salePointer, msg.sender);
@@ -150,6 +163,12 @@ contract WooshiPresale {
     function toggleWhitelist(bool whitelisted) external{
         require(msg.sender==admin, "User is not admin");
         saleWhitelisted=whitelisted;
+    }
+
+        //set receiver
+    function setReceiver(address payable receiver) external{
+        require(msg.sender==admin, "User is not admin");
+        saleReceiver=receiver;
     }
         
     function widthdraw(uint256 amount, address payable reciever) public payable{
